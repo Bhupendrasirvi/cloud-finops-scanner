@@ -3,139 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWS Cloud FinOps Waste Scanner</title>
+    <title>AWS Cloud FinOps Scanner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 border-b border-gray-800 pb-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-blue-500 selection:text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Navbar / Top Header -->
+        <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 mb-8 border-b border-slate-800/80">
             <div>
-                <h1 class="text-3xl font-bold text-blue-400">⚡ AWS Cloud FinOps Scanner</h1>
-                <p class="text-gray-400 text-sm mt-1">Identify idle resources and eliminate wasted cloud spend</p>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl font-bold tracking-tight text-white">AWS Cloud FinOps</h1>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Auto-Scaler</span>
+                </div>
+                <p class="text-slate-400 text-sm mt-1">Identify idle infrastructure, calculate monthly waste, and automate sleep schedules.</p>
             </div>
-            <div class="flex flex-wrap gap-3">
-                <button id="awsBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-200">⚙️ Configure AWS</button>
-                <button onclick="callScan('/api/scan', this, 'Run Waste Audit')" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-200">🔍 Run Waste Audit</button>
-                <button onclick="callScan('/api/demo-scan', this, 'Demo Scan')" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg">🧪 Demo Scan</button>
-                <button onclick="subscribePro(this)" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold py-2 px-5 rounded-lg shadow-lg transition duration-200">💳 Upgrade Pro ($49/mo)</button>
+            
+            <div class="flex flex-wrap items-center gap-2.5">
+                <button id="awsBtn" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium py-2 px-4 rounded-lg border border-slate-700 transition">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Configure AWS Access
+                </button>
+                <button onclick="callScan('/api/scan', this, 'Run Waste Audit')" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    Run Waste Audit
+                </button>
+                <button onclick="callScan('/api/demo-scan', this, 'Demo Mode')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium py-2 px-3 rounded-lg border border-slate-700 transition">
+                    Demo Mode
+                </button>
+                <button onclick="subscribePro(this)" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
+                    <span>Upgrade Pro ($49/mo)</span>
+                </button>
             </div>
+        </header>
+
+        <!-- KPI Metrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Monthly Waste</span>
+                    <span class="p-1.5 rounded-md bg-rose-500/10 text-rose-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                    </span>
+                </div>
+                <p class="text-3xl font-bold text-rose-400 mt-3" id="kpiWaste">$0.00</p>
+                <p class="text-xs text-slate-500 mt-1">Identified in active scan</p>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Idle Resources</span>
+                    <span class="p-1.5 rounded-md bg-amber-500/10 text-amber-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                </div>
+                <p class="text-3xl font-bold text-amber-400 mt-3" id="kpiCount">0</p>
+                <p class="text-xs text-slate-500 mt-1">Actionable resource items</p>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Savings Activated</span>
+                    <span class="p-1.5 rounded-md bg-emerald-500/10 text-emerald-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </span>
+                </div>
+                <p class="text-3xl font-bold text-emerald-400 mt-3" id="kpiSavings">$0.00</p>
+                <p class="text-xs text-slate-500 mt-1">Saved via Sleep Mode</p>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Last Audit</span>
+                    <span class="p-1.5 rounded-md bg-slate-800 text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </span>
+                </div>
+                <p class="text-xl font-semibold text-slate-200 mt-4" id="kpiTime">Never</p>
+                <p class="text-xs text-slate-500 mt-1">Region: us-east-1</p>
+            </div>
+
         </div>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow">
-                <p class="text-gray-400 text-sm font-medium">Estimated Monthly Waste</p>
-                <p class="text-4xl font-bold text-red-400 mt-2" id="kpiWaste">$0.00</p>
-                <p class="text-xs text-gray-500 mt-1">Based on active idle findings</p>
-            </div>
-            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow">
-                <p class="text-gray-400 text-sm font-medium">Total Idle Resources</p>
-                <p class="text-4xl font-bold text-yellow-400 mt-2" id="kpiCount">0</p>
-                <p class="text-xs text-gray-500 mt-1">Actionable resource items</p>
-            </div>
-            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow">
-                <p class="text-gray-400 text-sm font-medium">Last Audit Time</p>
-                <p class="text-xl font-semibold text-gray-200 mt-2" id="kpiTime">Never</p>
-                <p class="text-xs text-gray-500 mt-1">Region: us-east-1</p>
-            </div>
-            <div class="bg-gray-800 border border-green-700 rounded-xl p-6 shadow col-span-1 md:col-span-3">
-                <p class="text-gray-400 text-sm font-medium">Savings Activated <span class="text-xs text-green-500">(Sleep Mode)</span></p>
-                <p class="text-4xl font-bold text-green-400 mt-2" id="kpiSavings">$0.00</p>
-                <p class="text-xs text-gray-500 mt-1">Monthly savings from 1-click stopped resources</p>
-            </div>
-        </div>
-
-        <!-- Email Report Row -->
-        <div class="flex flex-col sm:flex-row items-center gap-3 mb-8 bg-gray-800 border border-gray-700 rounded-xl p-4">
-            <span class="text-gray-400 text-sm whitespace-nowrap">📧 Email ROI Report:</span>
-            <input type="email" id="reportEmail" placeholder="you@company.com"
-                class="flex-1 bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
-            <button onclick="sendReport()" id="reportBtn"
-                class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-5 rounded-lg transition duration-200 whitespace-nowrap">
-                Send Report
-            </button>
-            <span id="reportMsg" class="text-sm font-medium"></span>
-        </div>
-
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div class="lg:col-span-2 bg-gray-800 border border-gray-700 rounded-xl p-6">
-                <h2 class="text-xl font-semibold text-gray-200 mb-4">Wasted Spend Breakdown</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-gray-300">
-                        <thead class="bg-gray-700 text-gray-400 uppercase text-xs">
-                            <tr>
-                                <th class="py-3 px-4">Category</th>
-                                <th class="py-3 px-4">Resource ID</th>
-                                <th class="py-3 px-4">Region</th>
-                                <th class="py-3 px-4">Monthly Waste</th>
-                                <th class="py-3 px-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="findingsTable" class="divide-y divide-gray-700">
-                            <tr><td colspan="5" class="py-8 text-center text-gray-500">No scan executed yet. Click "Demo Scan" or "Configure AWS" above.</td></tr>
-                        </tbody>
-                    </table>
+        <!-- Action Bar / Email Bar -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <span class="p-2 rounded-lg bg-blue-500/10 text-blue-400 hidden sm:inline-flex">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </span>
+                <div>
+                    <h2 class="text-sm font-medium text-slate-200">Email ROI Summary</h2>
+                    <p class="text-xs text-slate-400">Send an executive report to team members or stakeholders</p>
                 </div>
             </div>
-            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 flex flex-col">
-                <h2 class="text-xl font-semibold text-gray-200 mb-4">Waste Distribution</h2>
-                <div class="w-full h-64"><canvas id="wasteChart"></canvas></div>
+            
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                <input type="email" id="reportEmail" placeholder="colleague@company.com"
+                    class="bg-slate-950 border border-slate-700/80 text-slate-200 text-sm rounded-lg px-3.5 py-2 w-full sm:w-64 focus:outline-none focus:border-blue-500 transition placeholder:text-slate-500">
+                <button onclick="sendReport()" id="reportBtn"
+                    class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium py-2 px-4 rounded-lg transition whitespace-nowrap">
+                    Send Summary
+                </button>
             </div>
+            <span id="reportMsg" class="text-xs font-medium"></span>
+        </div>
+
+        <!-- Main Breakdown & Chart Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            
+            <!-- Table Section -->
+            <div class="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="text-lg font-semibold text-slate-100">Wasted Spend Breakdown</h2>
+                        <span class="text-xs text-slate-500">Estimates based on regional baseline rates</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px] font-semibold tracking-wider">
+                                    <th class="pb-3 px-3">Category</th>
+                                    <th class="pb-3 px-3">Resource ID</th>
+                                    <th class="pb-3 px-3">Region</th>
+                                    <th class="pb-3 px-3">Monthly Waste</th>
+                                    <th class="pb-3 px-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="findingsTable" class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center text-slate-500 text-sm">
+                                        No audit results loaded yet. Click <span class="text-blue-400 font-medium cursor-pointer" onclick="callScan('/api/demo-scan', this, 'Demo Mode')">Demo Mode</span> or <span class="text-blue-400 font-medium cursor-pointer" onclick="document.getElementById('awsBtn').click()">Configure AWS</span> to start.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-100 mb-2">Waste Distribution</h2>
+                    <p class="text-xs text-slate-400 mb-6">Breakdown by infrastructure category</p>
+                    <div class="w-full h-64 flex items-center justify-center">
+                        <canvas id="wasteChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Footer -->
-        <footer class="mt-12 pt-6 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
-            <p>© 2026 AWS Cloud FinOps Auto-Scaler. All rights reserved.</p>
-            <div class="flex space-x-6">
-                <button onclick="document.getElementById('legalModal').style.display='flex'" class="hover:text-gray-300 underline">Terms of Service & Privacy Policy</button>
-                <a href="https://github.com/Bhupendrasirvi/cloud-finops-scanner" target="_blank" class="hover:text-gray-300">GitHub Repository</a>
+        <footer class="mt-12 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+            <p>© 2026 AWS Cloud FinOps Auto-Scaler. Built for cloud cost optimization.</p>
+            <div class="flex items-center space-x-6">
+                <button onclick="document.getElementById('legalModal').classList.remove('hidden')" class="hover:text-slate-300 transition">Terms & Privacy</button>
+                <a href="https://github.com/Bhupendrasirvi/cloud-finops-scanner" target="_blank" class="hover:text-slate-300 transition">GitHub Source</a>
             </div>
         </footer>
-    </div>
 
-    <!-- Legal Terms Modal -->
-    <div id="legalModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:50;">
-        <div class="modal-content" style="background:#1f2937; color:#f9fafb; padding:24px; border-radius:8px; width:90%; max-width:550px; max-height:80vh; overflow-y:auto;">
-            <h3 class="text-xl font-bold mb-3 text-blue-400">Terms of Service & Privacy Policy</h3>
-            <div class="text-xs text-gray-300 space-y-3 leading-relaxed">
-                <p><strong>1. AWS Access & Security:</strong> AWS Cloud FinOps Scanner requests short-lived access credentials solely for performing resource scans and executing user-initiated sleep actions. Credentials are held in memory for a maximum of 60 minutes and are never permanently stored or shared.</p>
-                <p><strong>2. Read-Only Policy Recommendation:</strong> Users are advised to supply credentials associated exclusively with IAM users assigned <code>ReadOnlyAccess</code> and <code>CloudWatchReadOnlyAccess</code> policies, unless initiating sleep automation.</p>
-                <p><strong>3. Service Disclaimer:</strong> Waste calculations are estimated based on standard baseline regional rates. Users are responsible for confirming resource states before executing stopping actions.</p>
-                <p><strong>4. Data Privacy:</strong> We do not sell or track your cloud infrastructure data. Subscription records are maintained via Stripe's encrypted payment platform.</p>
-            </div>
-            <div class="mt-6 flex justify-end">
-                <button onclick="document.getElementById('legalModal').style.display='none'" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg text-xs">Close</button>
-            </div>
-        </div>
     </div>
 
     <!-- AWS Credentials Modal -->
-    <div id="awsModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:50;">
-        <div class="modal-content" style="background:#1f2937; color:#f9fafb; padding:20px; border-radius:8px; width:320px;">
-            <h3 class="text-lg font-medium mb-4">AWS Credentials</h3>
-            <p style="color:#fbbf24; font-size:12px; margin-bottom:10px; line-height:1.4;">
-                ⚠️ <strong>Security:</strong> Create a dedicated IAM user with <code>ReadOnlyAccess</code> + <code>CloudWatchReadOnlyAccess</code> only.<br>
-                Never paste root account keys. Session auto-expires in 60 minutes.
-            </p>
-            <form id="awsForm">
-                <input type="text" id="access_key" placeholder="Access Key ID" required style="width:100%; margin-bottom:8px; padding:8px; background:#111827; color:#f9fafb; border:none;">
-                <input type="password" id="secret_key" placeholder="Secret Access Key" required style="width:100%; margin-bottom:8px; padding:8px; background:#111827; color:#f9fafb; border:none;">
-                <input type="text" id="region" placeholder="Region (e.g., us-east-1)" required style="width:100%; margin-bottom:8px; padding:8px; background:#111827; color:#f9fafb; border:none;">
-                <div class="flex space-x-2 mt-2">
-                    <button type="submit" style="flex:1; padding:8px; background:#2563eb; color:#fff; border:none; border-radius:4px;">Save</button>
-                    <button type="button" id="testBtn" style="flex:1; padding:8px; background:#10b981; color:#fff; border:none; border-radius:4px;">Test Connection</button>
-                    <button type="button" id="closeBtn" style="flex:1; padding:8px; background:#6b7280; color:#fff; border:none; border-radius:4px;">Close</button>
+    <div id="awsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">AWS Access Credentials</h3>
+                <button type="button" id="closeBtn" class="text-slate-400 hover:text-white text-lg">&times;</button>
+            </div>
+            
+            <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-4">
+                <p class="text-xs text-amber-300/90 leading-relaxed">
+                    <strong>Security Notice:</strong> Please provide credentials for a dedicated IAM user with <code>ReadOnlyAccess</code> and <code>CloudWatchReadOnlyAccess</code> policies. Credentials expire from session memory in 60 minutes.
+                </p>
+            </div>
+
+            <form id="awsForm" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Access Key ID</label>
+                    <input type="text" id="access_key" placeholder="AKIA..." required
+                        class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Secret Access Key</label>
+                    <input type="password" id="secret_key" placeholder="••••••••••••••••" required
+                        class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Target Region</label>
+                    <input type="text" id="region" placeholder="us-east-1" value="us-east-1" required
+                        class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-blue-500 transition">
+                </div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium py-2.5 rounded-lg transition">Save Credentials</button>
+                    <button type="button" id="testBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium py-2.5 px-4 rounded-lg border border-slate-700 transition">Test Connection</button>
                 </div>
             </form>
-            <div id="modalMsg" class="mt-2 font-medium"></div>
+            <div id="modalMsg" class="mt-3 text-xs font-medium"></div>
+        </div>
+    </div>
+
+    <!-- Legal Terms Modal -->
+    <div id="legalModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-lg shadow-2xl max-h-[85vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold text-white mb-4">Terms of Service & Privacy Policy</h3>
+            <div class="text-xs text-slate-400 space-y-3 leading-relaxed">
+                <p><strong class="text-slate-200">1. Credential Security:</strong> AWS access keys are held transiently in memory for up to 60 minutes solely to perform resource audits and execute requested actions. Credentials are never written to disk or logged.</p>
+                <p><strong class="text-slate-200">2. Recommended IAM Permissions:</strong> We strongly advise creating dedicated IAM users with standard <code>ReadOnlyAccess</code> policies unless initiating automation actions.</p>
+                <p><strong class="text-slate-200">3. Waste Calculation Estimates:</strong> Financial metrics are calculated using published regional baseline pricing. Users should review infrastructure before performing sleep or stop actions.</p>
+                <p><strong class="text-slate-200">4. Privacy Guarantee:</strong> Infrastructure data is not tracked or sold to third parties.</p>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="document.getElementById('legalModal').classList.add('hidden')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium py-2 px-5 rounded-lg border border-slate-700 transition">Close</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Modal handling
+        // Modal Handling
         const modal = document.getElementById('awsModal');
         const awsBtn = document.getElementById('awsBtn');
         const closeBtn = document.getElementById('closeBtn');
@@ -143,11 +238,11 @@
         const awsForm = document.getElementById('awsForm');
         const modalMsg = document.getElementById('modalMsg');
 
-        awsBtn.onclick = () => modal.style.display = 'flex';
-        closeBtn.onclick = () => modal.style.display = 'none';
-        window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+        awsBtn.onclick = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
+        closeBtn.onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+        window.onclick = (e) => { if (e.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } };
 
-        // Save credentials
+        // Save Credentials
         awsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = {
@@ -161,52 +256,26 @@
                 body: JSON.stringify(payload),
             });
             const data = await res.json();
-            modalMsg.style.color = res.ok ? 'green' : 'red';
+            modalMsg.style.color = res.ok ? '#10b981' : '#f43f5e';
             modalMsg.textContent = data.message || data.detail;
         });
 
-        // Test connection
+        // Test Connection
         testBtn.addEventListener('click', async () => {
-            modalMsg.textContent = 'Testing...';
-            modalMsg.style.color = 'blue';
+            modalMsg.textContent = 'Testing connection...';
+            modalMsg.style.color = '#3b82f6';
             const res = await fetch('/api/test-connection', { method: 'POST' });
             const data = await res.json();
-            modalMsg.style.color = res.ok ? 'green' : 'red';
+            modalMsg.style.color = res.ok ? '#10b981' : '#f43f5e';
             modalMsg.textContent = data.message || data.detail;
         });
 
-        let chartInstance = null;
-
-        let totalSaved = 0;
-
-        async function sleepResource(btn, resourceId, region, category, wasteUsd) {
-            if (!confirm(`Stop ${resourceId}?\nThis will save $${wasteUsd.toFixed(2)}/month. Confirm?`)) return;
-            btn.disabled = true;
-            btn.innerText = 'Stopping...';
-            try {
-                const res = await fetch('/api/sleep', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ resource_id: resourceId, region, category, monthly_waste_usd: wasteUsd })
-                });
-                const data = await res.json();
-                if (!res.ok) { alert(data.detail || 'Failed to stop resource.'); btn.disabled = false; btn.innerText = 'Sleep'; return; }
-                btn.innerText = '✅ Stopped';
-                btn.style.background = '#10b981';
-                totalSaved += wasteUsd;
-                document.getElementById('kpiSavings').innerText = '$' + totalSaved.toFixed(2);
-            } catch (err) {
-                alert('Error: ' + err.message);
-                btn.disabled = false;
-                btn.innerText = 'Sleep';
-            }
-        }
-
+        // Email Report
         async function sendReport() {
             const email = document.getElementById('reportEmail').value.trim();
             const btn = document.getElementById('reportBtn');
             const msg = document.getElementById('reportMsg');
-            if (!email) { msg.style.color = '#ef4444'; msg.textContent = 'Enter an email address.'; return; }
+            if (!email) { msg.style.color = '#f43f5e'; msg.textContent = 'Please enter an email address.'; return; }
             btn.disabled = true;
             btn.innerText = 'Sending...';
             msg.textContent = '';
@@ -217,14 +286,40 @@
                     body: JSON.stringify({ email })
                 });
                 const data = await res.json();
-                msg.style.color = res.ok ? '#10b981' : '#ef4444';
+                msg.style.color = res.ok ? '#10b981' : '#f43f5e';
                 msg.textContent = data.message || data.detail;
             } catch (err) {
-                msg.style.color = '#ef4444';
+                msg.style.color = '#f43f5e';
                 msg.textContent = 'Error: ' + err.message;
             } finally {
                 btn.disabled = false;
-                btn.innerText = 'Send Report';
+                btn.innerText = 'Send Summary';
+            }
+        }
+
+        let chartInstance = null;
+        let totalSaved = 0;
+
+        async function sleepResource(btn, resourceId, region, category, wasteUsd) {
+            if (!confirm(`Put ${resourceId} to sleep?\nThis will save $${wasteUsd.toFixed(2)}/month. Confirm action?`)) return;
+            btn.disabled = true;
+            btn.innerText = 'Stopping...';
+            try {
+                const res = await fetch('/api/sleep', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resource_id: resourceId, region, category, monthly_waste_usd: wasteUsd })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.detail || 'Failed to stop resource.'); btn.disabled = false; btn.innerText = 'Put to Sleep'; return; }
+                btn.innerText = 'Stopped';
+                btn.className = 'text-xs px-2.5 py-1 rounded bg-slate-800 text-emerald-400 font-medium border border-emerald-500/20';
+                totalSaved += wasteUsd;
+                document.getElementById('kpiSavings').innerText = '$' + totalSaved.toFixed(2);
+            } catch (err) {
+                alert('Error: ' + err.message);
+                btn.disabled = false;
+                btn.innerText = 'Put to Sleep';
             }
         }
 
@@ -236,7 +331,7 @@
                 const data = await res.json();
                 if (res.status === 401) {
                     alert('Session expired — please re-enter your AWS credentials.');
-                    modal.style.display = 'flex';
+                    awsBtn.click();
                     return;
                 }
                 if (!res.ok) { alert(data.detail || 'Scan failed.'); return; }
@@ -252,35 +347,56 @@
         function renderData(data) {
             document.getElementById('kpiWaste').innerText = '$' + data.total_waste_usd.toFixed(2);
             document.getElementById('kpiCount').innerText = data.findings.length;
-            document.getElementById('kpiTime').innerText = data.last_scanned_at ? new Date(data.last_scanned_at).toLocaleTimeString() : 'Never';
+            document.getElementById('kpiTime').innerText = data.last_scanned_at ? new Date(data.last_scanned_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never';
             const tbody = document.getElementById('findingsTable');
+            
             if (!data.findings.length) {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-gray-400">No wasted spend detected!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-slate-500 text-sm">No wasted spend detected in this audit!</td></tr>';
                 if (chartInstance) chartInstance.destroy();
                 return;
             }
+
             const totals = {};
             tbody.innerHTML = '';
             data.findings.forEach(item => {
                 const canSleep = item.category.includes('EC2') || item.category.includes('RDS');
                 const actionCell = canSleep
-                    ? `<td class="py-3 px-4"><button onclick="sleepResource(this, '${item.resource_id}', '${item.region}', '${item.category}', ${item.monthly_waste_usd})" style="padding:4px 12px; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:12px;">😴 Sleep</button></td>`
-                    : `<td class="py-3 px-4 text-gray-500 text-xs">N/A</td>`;
+                    ? `<td class="py-3 px-3 text-right"><button onclick="sleepResource(this, '${item.resource_id}', '${item.region}', '${item.category}', ${item.monthly_waste_usd})" class="text-xs px-2.5 py-1 rounded bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 font-medium transition border border-rose-500/20">Put to Sleep</button></td>`
+                    : `<td class="py-3 px-3 text-right text-slate-500 text-xs">—</td>`;
+                
                 tbody.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-gray-700">
-                        <td class="py-3 px-4 font-medium text-white">${item.category}</td>
-                        <td class="py-3 px-4 font-mono text-gray-300">${item.resource_id}</td>
-                        <td class="py-3 px-4 text-gray-400">${item.region}</td>
-                        <td class="py-3 px-4 font-semibold text-red-400">$${item.monthly_waste_usd.toFixed(2)}</td>
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="py-3.5 px-3 font-medium text-slate-200 text-xs">${item.category}</td>
+                        <td class="py-3.5 px-3 font-mono text-slate-400 text-xs">${item.resource_id}</td>
+                        <td class="py-3.5 px-3 text-slate-400 text-xs">${item.region}</td>
+                        <td class="py-3.5 px-3 font-semibold text-rose-400 text-xs">$${item.monthly_waste_usd.toFixed(2)}</td>
                         ${actionCell}
                     </tr>`);
                 totals[item.category] = (totals[item.category] || 0) + item.monthly_waste_usd;
             });
+
             if (chartInstance) chartInstance.destroy();
             chartInstance = new Chart(document.getElementById('wasteChart'), {
                 type: 'doughnut',
-                data: { labels: Object.keys(totals), datasets: [{ data: Object.values(totals), backgroundColor: ['#ef4444','#f59e0b','#3b82f6','#10b981','#8b5cf6'] }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } } }
+                data: {
+                    labels: Object.keys(totals),
+                    datasets: [{
+                        data: Object.values(totals),
+                        backgroundColor: ['#f43f5e', '#fbbf24', '#3b82f6', '#10b981', '#a855f7'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, padding: 16 }
+                        }
+                    },
+                    cutout: '72%'
+                }
             });
         }
 
@@ -295,12 +411,12 @@
                 } else {
                     alert('Checkout error: ' + (data.detail || 'Could not initiate checkout.'));
                     btn.disabled = false;
-                    btn.innerText = '💳 Upgrade Pro ($49/mo)';
+                    btn.innerText = 'Upgrade Pro ($49/mo)';
                 }
             } catch (err) {
                 alert('Checkout Error: ' + err.message);
                 btn.disabled = false;
-                btn.innerText = '💳 Upgrade Pro ($49/mo)';
+                btn.innerText = 'Upgrade Pro ($49/mo)';
             }
         }
 
