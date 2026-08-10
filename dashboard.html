@@ -19,6 +19,7 @@
                 <button id="awsBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-200">⚙️ Configure AWS</button>
                 <button onclick="callScan('/api/scan', this, 'Run Waste Audit')" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-200">🔍 Run Waste Audit</button>
                 <button onclick="callScan('/api/demo-scan', this, 'Demo Scan')" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg">🧪 Demo Scan</button>
+                <button onclick="subscribePro(this)" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold py-2 px-5 rounded-lg shadow-lg transition duration-200">💳 Upgrade Pro ($49/mo)</button>
             </div>
         </div>
 
@@ -258,10 +259,37 @@
             });
         }
 
-        // Auto-load last scan on page open
-        document.addEventListener('DOMContentLoaded', () =>
-            fetch('/api/findings').then(r => r.json()).then(d => { if (d.last_scanned_at) renderData(d); })
-        );
+        async function subscribePro(btn) {
+            btn.disabled = true;
+            btn.innerText = 'Redirecting...';
+            try {
+                const res = await fetch('/api/create-checkout-session', { method: 'POST' });
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Checkout error: ' + (data.detail || 'Could not initiate checkout.'));
+                    btn.disabled = false;
+                    btn.innerText = '💳 Upgrade Pro ($49/mo)';
+                }
+            } catch (err) {
+                alert('Checkout Error: ' + err.message);
+                btn.disabled = false;
+                btn.innerText = '💳 Upgrade Pro ($49/mo)';
+            }
+        }
+
+        // Auto-load last scan on page open & handle checkout return params
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('success') === 'true') {
+                alert('🎉 Welcome to Pro Tier! Your account is active and unlimited scans are unlocked.');
+            } else if (params.get('canceled') === 'true') {
+                alert('Checkout canceled. You can upgrade anytime!');
+            }
+
+            fetch('/api/findings').then(r => r.json()).then(d => { if (d.last_scanned_at) renderData(d); });
+        });
     </script>
 </body>
 </html>

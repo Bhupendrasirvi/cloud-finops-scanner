@@ -24,6 +24,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import boto3
 import uvicorn
+import stripe
 
 import aws_waste_scanner
 
@@ -314,6 +315,49 @@ def send_report(req: ReportRequest):
         raise HTTPException(500, f"Failed to send email: {e}")
 
     return {"status": "sent", "message": f"Report emailed to {req.email}"}
+
+
+# ---------------------------------------------------------------------------
+# Stripe Checkout Integration ($49/mo Pro Tier)
+# ---------------------------------------------------------------------------
+
+@app.post("/api/create-checkout-session")
+def create_checkout_session(request: Request):
+    """Create a Stripe Checkout session or return demo redirect if key not set."""
+    api_key = os.getenv("STRIPE_SECRET_KEY")
+    price_id = os.getenv("STRIPE_PRICE_ID")
+    base_url = str(request.base_url).rstrip("/")
+
+    if not api_key:
+        # Demo / Test Mode redirect when Stripe API key is not configured
+        return {"url": f"{base_url}/?success=true&mode=demo"}
+
+    stripe.api_key = api_key
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }] if price_id else [{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'Cloud FinOps Pro ($49/mo)',
+                        'description': 'Unlimited automated waste scanning & 1-click sleep mode',
+                    },
+                    'unit_amount': 4900,  # $49.00 USD
+                    'recurring': {'interval': 'month'},
+                },
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=f"{base_url}/?success=true",
+            cancel_url=f"{base_url}/?canceled=true",
+        )
+        return {"url": session.url}
+    except Exception as e:
+        raise HTTPException(500, f"Stripe Checkout Error: {e}")
 
 
 if __name__ == "__main__":
