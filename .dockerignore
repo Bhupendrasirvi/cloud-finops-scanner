@@ -1,0 +1,17 @@
+# Exclude everything by default, whitelist only what's needed
+**
+
+# Allow source files
+!main.py
+!aws_waste_scanner.py
+!dashboard.html
+!requirements.txt
+
+# Explicitly block secrets (belt-and-suspenders — they're already excluded by **)
+.env
+.env.*
+.aws/
+*.pem
+*.key
+__pycache__/
+*.log
