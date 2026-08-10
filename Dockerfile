@@ -9,11 +9,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source — .dockerignore keeps secrets out
 COPY main.py aws_waste_scanner.py dashboard.html ./
 
-# Never run as root in production
-RUN adduser --disabled-password --gecos "" appuser
+# Set permissions for appuser to allow writing sqlite database in /app
+RUN adduser --disabled-password --gecos "" appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
 
-# Reads SMTP_USER, SMTP_PASS, etc. from platform env vars — no secrets in image
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Reads PORT env var from cloud platform (e.g. Render), defaulting to 8000
+CMD ["python", "main.py"]

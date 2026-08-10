@@ -59,7 +59,14 @@ app = FastAPI(title="AWS FinOps Waste Scanner API", version="1.0.0")
 # ---------------------------------------------------------------------------
 # Lightweight SQLite Database (Persistent Storage)
 # ---------------------------------------------------------------------------
-DB_PATH = Path(__file__).parent / "finops.db"
+def _get_db_path():
+    parent_dir = Path(__file__).parent
+    if os.access(parent_dir, os.W_OK):
+        return parent_dir / "finops.db"
+    return Path("/tmp/finops.db")
+
+
+DB_PATH = _get_db_path()
 
 
 def init_db():
@@ -438,4 +445,5 @@ async def stripe_webhook(request: Request):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
