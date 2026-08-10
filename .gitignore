@@ -28,6 +28,12 @@ credentials
 .DS_Store
 Thumbs.db
 
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
 # Logs — may contain request data / stack traces with secrets
 *.log
 logs/
+

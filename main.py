@@ -10,6 +10,8 @@ Ponytail Note:
 
 import time
 import os
+import json
+import sqlite3
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -53,6 +55,37 @@ def _get_creds(request) -> AWSCreds | None:
     return creds
 
 app = FastAPI(title="AWS FinOps Waste Scanner API", version="1.0.0")
+
+# ---------------------------------------------------------------------------
+# Lightweight SQLite Database (Persistent Storage)
+# ---------------------------------------------------------------------------
+DB_PATH = Path(__file__).parent / "finops.db"
+
+
+def init_db():
+    """Initialize database tables for subscriptions, scans, and sleep actions."""
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                customer_id TEXT PRIMARY KEY,
+                email TEXT,
+                status TEXT,
+                updated_at TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sleep_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                resource_id TEXT,
+                category TEXT,
+                region TEXT,
+                monthly_savings_usd REAL,
+                actioned_at TEXT
+            )
+        """)
+
+
+init_db()
 
 _DASHBOARD = (Path(__file__).parent / "dashboard.html").read_text(encoding="utf-8")
 
@@ -358,6 +391,50 @@ def create_checkout_session(request: Request):
         return {"url": session.url}
     except Exception as e:
         raise HTTPException(500, f"Stripe Checkout Error: {e}")
+
+
+@app.post("/api/stripe-webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe Webhook events for automated subscription provisioning."""
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+    if webhook_secret and sig_header:
+        try:
+            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        except ValueError:
+            raise HTTPException(400, "Invalid payload")
+        except stripe.error.SignatureVerificationError:
+            raise HTTPException(400, "Invalid signature")
+    else:
+        # Fallback parsing when webhook secret is not configured
+        try:
+            event = json.loads(payload.decode("utf-8"))
+        except Exception:
+            raise HTTPException(400, "Invalid JSON payload")
+
+    event_type = event.get("type")
+    data_object = event.get("data", {}).get("object", {})
+
+    if event_type in ["checkout.session.completed", "customer.subscription.created", "customer.subscription.updated"]:
+        customer_id = data_object.get("customer") or data_object.get("id")
+        email = data_object.get("customer_details", {}).get("email") or data_object.get("email") or ""
+        status = data_object.get("status", "active")
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO subscriptions (customer_id, email, status, updated_at) VALUES (?, ?, ?, ?)",
+                (customer_id, email, status, datetime.utcnow().isoformat() + "Z")
+            )
+    elif event_type == "customer.subscription.deleted":
+        customer_id = data_object.get("customer")
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.execute(
+                "UPDATE subscriptions SET status = ? WHERE customer_id = ?",
+                ("canceled", customer_id)
+            )
+
+    return {"status": "success"}
 
 
 if __name__ == "__main__":
