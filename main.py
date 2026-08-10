@@ -304,10 +304,12 @@ def send_report(req: ReportRequest):
     msg.attach(MIMEText(_build_html_report(), "html"))
 
     try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
             server.starttls()
             server.login(smtp_user, smtp_pass)
             server.sendmail(smtp_user, req.email, msg.as_string())
+    except TimeoutError:
+        raise HTTPException(504, "SMTP connection timed out. Check SMTP_HOST and SMTP_PORT env vars.")
     except Exception as e:
         raise HTTPException(500, f"Failed to send email: {e}")
 
